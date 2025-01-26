@@ -1,0 +1,141 @@
+import pytest
+from qa_classes_for_test_reg_auf import StatusCodeChecker, MessageChecker, RegisterRequest,url_register
+from expected_message import expected_message_username_email,test_register_invalid_sponsor_login, password_confirmation_invalid,login_by_minimum_number
+
+
+sponsor_username_valid = "t1000"
+username_valid = "t6000"
+
+
+# Не валидные
+invalid_login_minimum_number = "t1"
+invalid_sponsor = "rrrrrrrr"
+username_invalid = username_valid
+invalid_password_confirmation = "987654321"
+
+# Шаблон для тела запроса
+body = {
+    "sponsor_username": sponsor_username_valid,
+    "username": username_valid,
+    "email": username_valid + "@gmail.com",
+    "password": "123456",
+    "password_confirmation": "123456",
+    "agreement": "true",
+    "last_name": "Bond",
+    "first_name": "James",
+    "phone": "+380636038450"
+}
+
+class TestRegister_valid:
+    """Тестирование API регистрации пользователя."""
+
+    def test_user_registration(self):
+        # Подготавливаем тело запроса
+        request_body = body  # Это тело запроса, которое мы заполнили ранее
+        # Создаём объект для отправки запроса, передавая URL регистрации
+        api_request = RegisterRequest(url_register=url_register)
+
+        # Отправляем запрос
+        response = api_request.register(request_body)
+        # Проверяем статус-код ответа
+        StatusCodeChecker.check_status_code(response, 201)
+        # Проверяем получение токена из ответа
+        expected_token_key = "temp_token"
+        expected_token_value = response.json().get("data", {}).get("temp_token")
+        assert expected_token_value, "Token is missing in the response"
+        MessageChecker.check_message(response, expected_token_key, expected_token_value)
+
+
+
+ #"""Тестирование API регистрации пользователя. Тест кейсы по полю логин Спонсора"""
+class Invalid_sponsor_login:
+    """Тестирование API регистрации пользователя с неверным спонсором."""
+    def test_user_registration(self):
+        # Подготавливаем тело запроса
+        request_body = body  # Это тело запроса, которое мы заполнили ранее
+        # Пример изменения значений, если нужно
+        request_body["sponsor_username"] = invalid_sponsor
+        # Создаём объект для отправки запроса, передавая URL регистрации
+        api_request = RegisterRequest(url_register=url_register)
+        # Отправляем запрос
+        response = api_request.register(request_body)
+        # Проверяем статус-код ответа
+        StatusCodeChecker.check_status_code(response, 422)
+        # Проверяем получение токена из ответа
+        expected_message = test_register_invalid_sponsor_login
+        actual_message = response.json()
+        assert actual_message == expected_message, (
+            f"Expected message {expected_message}, but got {actual_message}")
+        print(response.json())
+
+
+#"""Тестирование API регистрации пользователя. Тест кейсы по полю Логин"""
+
+class Invalid_login_by_minimum_number:
+    """Тестирование API регистрации пользователя с неверным спонсором."""
+
+    def test_user_registration(self):
+        # Подготавливаем тело запроса
+        request_body = body  # Это тело запроса, которое мы заполнили ранее
+        # Пример изменения значений, если нужно
+        request_body["username"] = invalid_login_minimum_number
+        # Создаём объект для отправки запроса, передавая URL регистрации
+        api_request = RegisterRequest(url_register=url_register)
+        # Отправляем запрос
+        response = api_request.register(request_body)
+        # Проверяем статус-код ответа
+        StatusCodeChecker.check_status_code(response, 422)
+        # Проверяем получение токена из ответа
+        expected_message = login_by_minimum_number
+        actual_message = response.json()
+        assert actual_message == expected_message, (
+            f"Expected message {expected_message}, but got {actual_message}")
+        print(response.json())
+
+#"""Тестирование API регистрации пользователя. Тест кейсы по полю логин юзера и Email"""
+class TestRegister_Invalid_login_by_name_and_email:
+    """Тестирование API регистрации пользователя с уже существующим логином b Email."""
+
+    def test_user_registration(self):
+        # Подготавливаем тело запроса
+        request_body = body  # Это тело запроса, которое мы заполнили ранее
+        # Пример изменения значений, если нужно
+        request_body["username"] = username_invalid
+        request_body["email"] = username_invalid + "@gmail.com"
+        # Создаём объект для отправки запроса, передавая URL регистрации
+        api_request = RegisterRequest(url_register=url_register)
+        # Отправляем запрос
+        response = api_request.register(request_body)
+        # Проверяем статус-код ответа
+        StatusCodeChecker.check_status_code(response, 422)
+        # Проверяем получение токена из ответа
+        expected_message = expected_message_username_email
+        actual_message = response.json()
+        assert actual_message == expected_message, (
+            f"Expected message {expected_message}, but got {actual_message}")
+        print(response.json())
+
+#"""Тестирование API регистрации пользователя. Тест кейсы по полю пароль и подтверждение пароля"""
+class TestRegister_Invalid_password_and_password_confirmation:
+    """Тестирование API регистрации пользователя с не подтвержденным паролем"""
+
+    def test_user_registration(self):
+        # Подготавливаем тело запроса
+        request_body = body  # Это тело запроса, которое мы заполнили ранее
+        # Пример изменения значений, если нужно
+        request_body["password_confirmation"] = invalid_password_confirmation
+        # Создаём объект для отправки запроса, передавая URL регистрации
+        api_request = RegisterRequest(url_register=url_register)
+        # Отправляем запрос
+        response = api_request.register(request_body)
+        # Проверяем статус-код ответа
+        StatusCodeChecker.check_status_code(response, 422)
+        # Проверяем получение токена из ответа
+
+        expected_message = password_confirmation_invalid
+        actual_message = response.json()
+        assert actual_message == expected_message, (
+            f"Expected message {expected_message}, but got {actual_message}")
+        print(actual_message)
+
+
