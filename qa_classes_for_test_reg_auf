@@ -1,0 +1,58 @@
+import requests
+url_login = ""
+url_register = ""
+headers = {
+            'Content-Type': 'application/json;charset=UTF-8',
+            'Accept': 'application/json, text/plain, /'
+        }
+
+
+class Authorization:
+    """Класс для авторизации."""
+    def __init__(self):
+        self.base_url = url_login
+        self.headers = {}
+    def login(self, login: str, password: str):
+        """Делает запрос на авторизацию и сохраняет токен в хедере."""
+        payload = {"login": login, "password": password}
+        response = requests.post(self.base_url, json=payload, headers=headers)
+        if response.status_code == 200:
+            token = response.json().get("data", {}).get("token")
+            if token:
+                self.headers["Authorization"] = f"Bearer {token}"
+        return response
+class StatusCodeChecker:
+    """Класс для проверки статус-кода."""
+
+    @staticmethod
+    def check_status_code(response, expected_status_code):
+        """Сравнивает фактический статус-код с ожидаемым."""
+        actual_status_code = response.status_code
+        print(response.status_code)
+        assert actual_status_code == expected_status_code, (
+            f" Ожедаемый статус код {expected_status_code}, но получен {actual_status_code}"
+        )
+
+class MessageChecker:
+    """Класс для проверки сообщения ответа."""
+    @staticmethod
+    def check_message(response, expected_message_key, expected_message_value):
+        """Сравнивает сообщение в ответе с ожидаемым результатом."""
+        response_data = response.json()
+        actual_value = response_data.get("data", {}).get(expected_message_key)
+        assert actual_value == expected_message_value, (
+            f"Expected {expected_message_key} to be {expected_message_value}, but got {actual_value}"
+        )
+        if actual_value == expected_message_value:
+            print("Получено = " + actual_value)
+class RegisterRequest:
+    """
+    Класс для отправки запроса регистрации.
+    """
+    def __init__(self, url_register):
+        self.base_url = url_register
+        self.headers = {}
+    def register(self, payload: dict):
+        response = requests.post(self.base_url, json=payload, headers=headers)
+        print("Адрес получен")
+        return response
